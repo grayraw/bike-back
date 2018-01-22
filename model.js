@@ -3,8 +3,6 @@ mongoose.connect('mongodb://localhost/bikesDatabase');
 
 const Bike = mongoose.model('Bike', {id: Number, title: String, frame: String, price: String, type: String, createdAt: Date, updatedAt: Date});
 
-console.log('yo');
-
 module.exports = {
     list: function(){
         return Bike.find({}, (err, docs)=>{
@@ -24,7 +22,24 @@ module.exports = {
             return docs;
         })
     },
-    update: function(){
+    update: function(bike){
+        return Bike.find({id: bike.id}, (err, bikeInDatabase)=>{
+            // bikeInDatabase = {...bikeInDatabase, ...bike}; 
+
+            if(err) return err;
+
+            console.log(bikeInDatabase);
+
+            for (var key in bike) {
+                if (bike.hasOwnProperty(key)) {
+                    bikeInDatabase[0][key] = bike[key];
+                }
+            };
+
+            return bikeInDatabase[0].save((err, bike)=>{
+                return bike
+            })
+        })
 
     },
     remove: function(){
