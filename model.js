@@ -1,19 +1,30 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate');
+const bikeModel = require('./bikeModel');
+
 mongoose.connect('mongodb://localhost/bikesDatabase');
 
-const Bike = mongoose.model('Bike', {id: Number, title: String, frame: String, price: String, type: String, brand: String, createdAt: Date, updatedAt: Date});
+const bikeSchema = new mongoose.Schema(bikeModel);
+bikeSchema.plugin(mongoosePaginate);
+
+const Bike = mongoose.model('Bike', bikeSchema);
+
+
 
 module.exports = {
-    list (query = {}){
-        return Bike.find(query, (err, docs)=>{
+    list(query = {}) {
+        // debugger;
+        let page = query.page ? parseInt(query.page) : 1;
+        delete query.page;
+        return Bike.paginate(query, { page, limit: 3 }, (err, docs) => {
             if (err) return err;
             return docs;
         })
     },
-    
-    getUniqueValuesForParams(params){
+
+    getUniqueValuesForParams(params) {
         let valuesArray = [];
-        params.forEach((param)=>{
+        params.forEach((param) => {
             valuesArray.push(
                 Bike.find({})
                     .distinct(param)
@@ -24,27 +35,27 @@ module.exports = {
 
     },
     //takes an object {param: value} i.e. {"brand": "Giant"}
-    getByParam (requestObject){
-        return Bike.find(requestObject, (err, docs)=>{
+    getByParam(requestObject) {
+        return Bike.find(requestObject, (err, docs) => {
             if (err) return err;
             return docs;
         })
     },
-    create (bike){
+    create(bike) {
         const newBike = new Bike(bike);
-        return newBike.save().then(()=>{
+        return newBike.save().then(() => {
             console.log('Bike saved')
         })
     },
-    getById (id){
-        return Bike.find({id: id}, (err, docs)=>{
-            if(err) return err;
+    getById(id) {
+        return Bike.find({ id: id }, (err, docs) => {
+            if (err) return err;
             return docs;
         })
     },
-    update (bike){
-        return Bike.find({id: bike.id}, (err, bikeInDatabase)=>{
-            if(err) return err;
+    update(bike) {
+        return Bike.find({ id: bike.id }, (err, bikeInDatabase) => {
+            if (err) return err;
             console.log(bikeInDatabase);
 
             for (var key in bike) {
@@ -53,17 +64,17 @@ module.exports = {
                 }
             };
 
-            return bikeInDatabase[0].save((err, bike)=>{
+            return bikeInDatabase[0].save((err, bike) => {
                 return bike
             })
         })
 
     },
-    remove (){
+    remove() {
 
     },
-    getLatestID (){
-        return Bike.count({}, (err, count)=>{
+    getLatestID() {
+        return Bike.count({}, (err, count) => {
             if (err) return err;
             console.log(count);
             return count + 1;
